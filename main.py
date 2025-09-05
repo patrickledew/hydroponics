@@ -1,7 +1,7 @@
 # Setup API
 
 from flask import Flask
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from motor import MotorDriver
 from sensor import MoistureSensor
 import asyncio
@@ -15,6 +15,7 @@ sensor = MoistureSensor()
 current_task = None
 
 @app.route("/pump/<speed>/<duration>")
+@cross_origin()
 async def run_pump(speed, duration):
     speed = float(speed)
     duration = float(duration)
@@ -23,6 +24,7 @@ async def run_pump(speed, duration):
     return "<h1>Pump ran for " + str(duration) + " seconds at speed " + str(speed) + "</h1>"
 
 @app.route("/moisture")
+@cross_origin()
 async def get_moisture():
     print("Moisture: " + str(sensor.read_value()))
     return {
