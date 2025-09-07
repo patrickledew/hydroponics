@@ -108,5 +108,14 @@ def trigger_schedule(schedule_id):
     threading.Thread(target=activate_pump).start()
     return jsonify({"success": True})
     
+async def startup_test():
+    await pump.run_for(1.0, 0.5)
+    await pump.run_for(-1.0, 0.5)
+    await pump.run_for(1.0, 0.5)
+    await pump.run_for(-1.0, 0.5)
+    await pump.run_for(1.0, 0.5)
+
 if __name__ == '__main__':
+    # Quick back/forth motor signal on startup to verify functionality
+    asyncio.run(startup_test())
     app.run(host='0.0.0.0', port=5000, debug=True)
