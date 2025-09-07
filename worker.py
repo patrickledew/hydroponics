@@ -25,7 +25,10 @@ async def worker(pump: MotorDriver, sensor: MoistureSensor):
         print(f"Found {len(schedules)} active schedules.")
 
         for schedule in schedules:
-            print("Checking watering schedule for plant:", schedule.plant_name)
+            print(f"[Plant: {schedule.plant_name}]")
+            daystring = ", ".join([days[d] for d in schedule.days_of_week])
+            print(f"* Days: {daystring}")
+            print(f"* Times: {[t.strftime('%H:%M') for t in schedule.schedule_times]}")
             should_water = False
             
             # Check time-based schedule
@@ -37,26 +40,31 @@ async def worker(pump: MotorDriver, sensor: MoistureSensor):
                     )
                     # If we're within 1 minute of the scheduled time
                     if abs(time_diff.total_seconds()) < 60:
-                        print("Reached scheduled time:", scheduled_time)
+                        print("* ⏲️ Reached scheduled time:", scheduled_time)
                         should_water = True
                         break
             
             # Check moisture-based schedule
             if schedule.moisture_threshold is not None:
+                print(f"* Moisture Threshold: {schedule.moisture_threshold}%")
                 moisture_level = await sensor.get_moisture_level()
+                print(f"* Current Moisture Level: {moisture_level}%")
                 if moisture_level < schedule.moisture_threshold:
                     # Check if we haven't watered recently (respect check_interval_minutes)
                     if (schedule.last_watered is None or 
                         (current_time - schedule.last_watered).total_seconds() > 
                         schedule.check_interval_minutes * 60):
                         should_water = True
+                        print(f"* 🌵 Moisture below threshold.")
+                    else:
+                        print(f"* We watered < {schedule.check_interval_minutes}m ago. Skipping watering.")
             
             # Water if needed
             if should_water:
-                print(f"Watering plant: {schedule.plant_name}")
+                print(f"* 💧 Watering plant: {schedule.plant_name}")
                 await pump.activate(schedule.pump_duration_seconds)
                 schedule_manager.record_watering(schedule.id)
         
         # Sleep for a short time before checking again
-        await asyncio.sleep(30)  # Check every 30 seconds
+        await asyncio.sleep(15)  # Check every 15 seconds
         
