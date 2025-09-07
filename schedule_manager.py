@@ -29,6 +29,7 @@ class ScheduleManager:
     def get_all(self) -> List[Schedule]:
         """Get all schedules"""
         with self.lock:
+            self._load_schedules()
             return list(self.schedules.values())
     
     def get(self, schedule_id: str) -> Optional[Schedule]:
