@@ -32,7 +32,7 @@ async def worker(pump: MotorDriver, sensor: MoistureSensor):
     # Get the worker interval from an environment variable, default to 15 seconds if not set
     worker_interval = int(os.getenv("HYDRO_WORKER_INTERVAL", 15))
     moisture_readings = []
-    with open("moisture_log.txt", "r") as f:
+    with open("moisture_log.txt", "w+") as f:
         raw_readings = f.readlines()
         # Parse readings into (timestamp, moisture_level) tuples
         moisture_readings = []
@@ -57,7 +57,7 @@ async def worker(pump: MotorDriver, sensor: MoistureSensor):
         # Record the current moisture level into a log file
         moisture_level = await sensor.get_moisture_level()
         moisture_readings.append((current_time, moisture_level))
-        with open("moisture_log.txt", "a") as f:
+        with open("moisture_log.txt", "a+") as f:
             f.write(f"{current_time.isoformat()}, {moisture_level}\n")
         
         print(moisture_history_string(moisture_readings, minutes=30))
@@ -81,7 +81,7 @@ async def worker(pump: MotorDriver, sensor: MoistureSensor):
                         datetime.datetime.combine(datetime.date.min, scheduled_time)
                     )
                     # If we're within 1 minute of the scheduled time
-                    if time_diff > 0 and time_diff.total_seconds() < 60:
+                    if time_diff.total_seconds() > 0 and time_diff.total_seconds() < 60:
                         print("* ⏲️ Reached scheduled time:", scheduled_time)
                         should_water = True
                         break
