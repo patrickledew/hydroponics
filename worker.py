@@ -18,7 +18,8 @@ async def worker(pump: MotorDriver, sensor: MoistureSensor):
         current_time = datetime.datetime.now()
         current_day = current_time.weekday()  # 0=Monday, 6=Sunday
         current_time_of_day = current_time.time()
-        print(f"Current time: {current_time}, Day: {["Mon","Tue","Wed","Thu","Fri", "Sat", "Sun"][current_day]}, Time of day: {current_time_of_day}")
+        days = ["Mon","Tue","Wed","Thu","Fri", "Sat", "Sun"]
+        print(f"Current time: {current_time}, Day: {days[current_day]}, Time of day: {current_time_of_day}")
         # Get all active schedules
         schedules = [s for s in schedule_manager.get_all() if s.active]
         print(f"Found {len(schedules)} active schedules.")
