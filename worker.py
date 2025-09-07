@@ -72,8 +72,9 @@ async def worker(pump: MotorDriver, sensor: MoistureSensor):
             print(f"* Days: {daystring}")
             print(f"* Times: {[t.strftime('%H:%M') for t in schedule.schedule_times]}")
             should_water = False
-            time_since_last_watered = (current_time - schedule.last_watered).total_seconds()
-            print(f"* Last Watered: {schedule.last_watered} ({time_since_last_watered}s ago)")
+            seconds_since_last_watered = (current_time - schedule.last_watered).total_seconds() if schedule.last_watered else None
+            last_watered_str = f"{schedule.last_watered} ({seconds_since_last_watered}s ago)" if schedule.last_watered else "Never"
+            print(f"* Last Watered: {last_watered_str}")
             
             # Check time-based schedule
             if schedule.schedule_times and current_day in schedule.days_of_week:
@@ -84,11 +85,9 @@ async def worker(pump: MotorDriver, sensor: MoistureSensor):
                     )
                     skip_minutes = int(os.getenv("HYDRO_SKIP_IF_WATERED_WITHIN_MINUTES", 1))
                     # If we've already watered within the last minute, skip so we dont repeat the same scheduled water
-                    if schedule.last_watered:
-                        time_since_last_watered = (current_time - schedule.last_watered).total_seconds()
-                        if time_since_last_watered < skip_minutes:
-                            print(f"* We watered < {skip_minutes}m ago. Skipping watering.")
-                            continue
+                    if seconds_since_last_watered and seconds_since_last_watered < skip_minutes * 60:
+                        print(f"* We watered < {skip_minutes}m ago. Skipping watering.")
+                        continue
 
                     # If we're within 1 minute of the scheduled time
                     if time_diff.total_seconds() > 0 and time_diff.total_seconds() < 60:
