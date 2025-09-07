@@ -18,11 +18,12 @@ schedule_manager = ScheduleManager()
 
 
 async def startup_test():
-    await pump.run_for(1.0, 0.5)
-    await pump.run_for(-1.0, 0.5)
-    await pump.run_for(1.0, 0.5)
-    await pump.run_for(-1.0, 0.5)
-    await pump.run_for(1.0, 0.5)
+    await pump.run_for(1.0, 1)
+    await pump.run_for(-1.0, 0.25)
+    await pump.run_for(1.0, 0.25)
+    await pump.run_for(-1.0, 0.25)
+    await pump.run_for(1.0, 0.25)
+    await pump.run_for(-1.0, 1)
 asyncio.get_event_loop().run_until_complete(startup_test())
 
 # Start worker process in a separate thread
