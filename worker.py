@@ -25,7 +25,7 @@ async def worker(pump: MotorDriver, sensor: MoistureSensor):
         print(f"Found {len(schedules)} active schedules.")
 
         for schedule in schedules:
-            print(f"[Plant: {schedule.plant_name}]")
+            print(f"[Plant: {schedule.plant_name} - {schedule.id}]")
             daystring = ", ".join([days[d] for d in schedule.days_of_week])
             print(f"* Days: {daystring}")
             print(f"* Times: {[t.strftime('%H:%M') for t in schedule.schedule_times]}")
