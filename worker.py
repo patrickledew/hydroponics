@@ -72,6 +72,8 @@ async def worker(pump: MotorDriver, sensor: MoistureSensor):
             print(f"* Days: {daystring}")
             print(f"* Times: {[t.strftime('%H:%M') for t in schedule.schedule_times]}")
             should_water = False
+            time_since_last_watered = (current_time - schedule.last_watered).total_seconds()
+            print(f"* Last Watered: {schedule.last_watered} ({time_since_last_watered}s ago)")
             
             # Check time-based schedule
             if schedule.schedule_times and current_day in schedule.days_of_week:
