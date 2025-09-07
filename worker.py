@@ -80,6 +80,14 @@ async def worker(pump: MotorDriver, sensor: MoistureSensor):
                         datetime.datetime.combine(datetime.date.min, current_time_of_day) - 
                         datetime.datetime.combine(datetime.date.min, scheduled_time)
                     )
+                    skip_minutes = int(os.getenv("HYDRO_SKIP_IF_WATERED_WITHIN_MINUTES", 1))
+                    # If we've already watered within the last minute, skip so we dont repeat the same scheduled water
+                    if schedule.last_watered:
+                        time_since_last_watered = (current_time - schedule.last_watered).total_seconds()
+                        if time_since_last_watered < skip_minutes:
+                            print(f"* We watered < {skip_minutes}m ago. Skipping watering.")
+                            continue
+
                     # If we're within 1 minute of the scheduled time
                     if time_diff.total_seconds() > 0 and time_diff.total_seconds() < 60:
                         print("* ⏲️ Reached scheduled time:", scheduled_time)
@@ -105,6 +113,7 @@ async def worker(pump: MotorDriver, sensor: MoistureSensor):
             if should_water:
                 print(f"* 💧💧💧 Watering plant! 💧💧💧")
                 asyncio.create_task(pump.activate(schedule.pump_duration_seconds))
+                schedule.last_watered = datetime.datetime.now()
                 schedule_manager.record_watering(schedule.id)
         
         # Sleep for a short time before checking again
