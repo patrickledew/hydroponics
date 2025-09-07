@@ -7,10 +7,13 @@ import time
 from motor import MotorDriver
 from sensor import MoistureSensor
 from schedule_manager import ScheduleManager
+import os
 
 
 async def worker(pump: MotorDriver, sensor: MoistureSensor):
     schedule_manager = ScheduleManager()
+    # Get the worker interval from an environment variable, default to 15 seconds if not set
+    worker_interval = int(os.getenv("HYDRO_WORKER_INTERVAL", 15))
     
     while True:
         print("=== Hydroponics Worker Event Loop ===")
@@ -66,5 +69,5 @@ async def worker(pump: MotorDriver, sensor: MoistureSensor):
                 schedule_manager.record_watering(schedule.id)
         
         # Sleep for a short time before checking again
-        await asyncio.sleep(15)  # Check every 15 seconds
+        await asyncio.sleep(worker_interval)  # Check every 15 seconds
         
