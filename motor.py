@@ -22,6 +22,10 @@ class MotorDriver:
             self.run(speed)
             await sleep(duration)
             self.stop()
+            
+    async def activate(self, duration_seconds, speed=1.0):
+        """Activate the pump at the specified speed for a given duration"""
+        await self.run_for(speed, duration_seconds)
 
     def stop(self):
         self.motor.value = 0

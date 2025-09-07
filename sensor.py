@@ -1,4 +1,5 @@
 import gpiozero
+import asyncio
 
 class MoistureSensor():
     def __init__(self, channel=0):
@@ -12,3 +13,9 @@ class MoistureSensor():
 
     def read_value(self):
         return 1 - self.sensor.value
+        
+    async def get_moisture_level(self):
+        """Get moisture level as a percentage (0-100)"""
+        # Convert the raw value (0-1) to a percentage
+        raw_value = self.read_value()
+        return int(raw_value * 100)
