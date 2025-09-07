@@ -13,14 +13,18 @@ async def worker(pump: MotorDriver, sensor: MoistureSensor):
     schedule_manager = ScheduleManager()
     
     while True:
+        print("=== Hydroponics Worker Event Loop ===")
+
         current_time = datetime.datetime.now()
         current_day = current_time.weekday()  # 0=Monday, 6=Sunday
         current_time_of_day = current_time.time()
-        
+        print(f"Current time: {current_time}, Day: {["Mon","Tue","Wed","Thu","Fri", "Sat", "Sun"][current_day]}, Time of day: {current_time_of_day}")
         # Get all active schedules
         schedules = [s for s in schedule_manager.get_all() if s.active]
-        
+        print(f"Found {len(schedules)} active schedules.")
+
         for schedule in schedules:
+            print("Checking watering schedule for plant:", schedule.plant_name)
             should_water = False
             
             # Check time-based schedule
@@ -32,6 +36,7 @@ async def worker(pump: MotorDriver, sensor: MoistureSensor):
                     )
                     # If we're within 1 minute of the scheduled time
                     if abs(time_diff.total_seconds()) < 60:
+                        print("Reached scheduled time:", scheduled_time)
                         should_water = True
                         break
             

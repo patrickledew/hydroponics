@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
-import { Chart } from "react-charts";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+import { Chart, type AxisOptions } from "react-charts";
 import "./App.css";
+import { getMoisture, runPump } from "./services/apiService";
 
 type MoistureDatum = {
   value: number;
@@ -37,7 +36,9 @@ function App() {
         data: [
           {
             value: threshold,
-            time: moistData.sort((a, b) => a - b)[0].time,
+            time: moistData.sort(
+              (a, b) => a.time.getTime() - b.time.getTime()
+            )[0].time,
           },
           {
             value: threshold,
@@ -46,7 +47,7 @@ function App() {
         ],
       },
     ];
-  }, [moistData]);
+  }, [moistData, threshold]);
 
   const primaryAxis = useMemo(
     (): AxisOptions<MoistureDatum> => ({
@@ -67,13 +68,12 @@ function App() {
   );
 
   const pulse = async () => {
-    await fetch(`http://rpi.local:5000/pump/${speed}/${duration}`);
+    await runPump(speed, duration);
   };
 
   const updateMoisture = async () => {
     try {
-      const res = await fetch(`http://rpi.local:5000/moisture`);
-      const data = await res.json();
+      const data = await getMoisture();
       setMoisture(data.value);
       setMoistData((moistData) =>
         [
@@ -93,17 +93,6 @@ function App() {
     return () => clearInterval(int);
   }, []);
 
-  useEffect(() => {
-    (async () => {
-      if (lastCheck > Date.now() - 10000) return;
-      console.log("checking");
-      setLastCheck(Date.now());
-      if (moistData[moistData.length - 1].value < threshold) {
-        await fetch(`http://rpi.local:5000/pump/${1}/${5}`);
-      }
-    })();
-  }, [moistData, threshold]);
-
   return (
     <>
       <h1>Hydroponics Controller</h1>
@@ -115,18 +104,18 @@ function App() {
           alignItems: "start",
         }}
       >
-        <label for="speed">Speed: {speed}</label>
+        <label htmlFor="speed">Speed: {speed}</label>
         <input
           id="speed"
-          style={{ width: "100%", accentColor: speed < 0 ? "red" : "blue" }}
+          className={`input-range ${speed < 0 ? "negative" : ""}`}
           type="range"
           min="-1"
           max="1"
           step="0.1"
           value={speed}
-          onChange={(e) => setSpeed(e.target.value)}
+          onChange={(e) => setSpeed(parseFloat(e.target.value))}
         />
-        <label for="duration">Duration: {duration}</label>
+        <label htmlFor="duration">Duration: {duration}</label>
         <input
           id="duration"
           style={{ width: "100%" }}
@@ -135,12 +124,12 @@ function App() {
           max="5"
           step="0.1"
           value={duration}
-          onChange={(e) => setDuration(e.target.value)}
+          onChange={(e) => setDuration(parseFloat(e.target.value))}
         />
       </div>
 
       <h2>Moisture Value: {moisture.toFixed(5)}</h2>
-      <div class="card" style={{ width: 1000, height: 500 }}>
+      <div className="card chart-container">
         {moistData && (
           <>
             <Chart
@@ -153,8 +142,8 @@ function App() {
           </>
         )}
       </div>
-      <div class="card">
-        <label for="threshold">Threshold: {threshold}</label>
+      <div className="card">
+        <label htmlFor="threshold">Threshold: {threshold}</label>
         <input
           id="threshold"
           style={{ width: "100%" }}
@@ -163,7 +152,7 @@ function App() {
           max="1"
           step="0.01"
           value={threshold}
-          onChange={(e) => setThreshold(e.target.value)}
+          onChange={(e) => setThreshold(parseFloat(e.target.value))}
         />
       </div>
     </>

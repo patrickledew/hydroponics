@@ -1,13 +1,11 @@
 # Setup API
 
 from flask import Flask, request, jsonify
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 from motor import MotorDriver
 from sensor import MoistureSensor
 import asyncio
-from asyncio import create_task
 import threading
-from types import CoroutineType
 
 from schedule_manager import ScheduleManager
 from worker import worker
@@ -29,7 +27,7 @@ def run_worker():
 worker_thread = threading.Thread(target=run_worker, daemon=True)
 worker_thread.start()
 
-@app.route("/pump/<speed>/<duration>")
+@app.route("/api/pump/<speed>/<duration>")
 async def run_pump(speed, duration):
     speed = float(speed)
     duration = float(duration)
@@ -37,7 +35,7 @@ async def run_pump(speed, duration):
     await pump.run_for(speed, duration)
     return "<h1>Pump ran for " + str(duration) + " seconds at speed " + str(speed) + "</h1>"
 
-@app.route("/moisture")
+@app.route("/api/moisture")
 async def get_moisture():
     print("Moisture: " + str(sensor.read_value()))
     return {
@@ -59,7 +57,9 @@ def get_schedule(schedule_id):
 
 @app.route('/api/schedules', methods=['POST'])
 def create_schedule():
+    print(request)
     data = request.json
+    print(data)
     schedule = schedule_manager.create(data)
     return jsonify(schedule.to_dict()), 201
 
