@@ -65,7 +65,7 @@ async def worker(pump: MotorDriver, sensor: MoistureSensor):
             # Water if needed
             if should_water:
                 print(f"* 💧 Watering plant: {schedule.plant_name}")
-                await pump.activate(schedule.pump_duration_seconds)
+                asyncio.create_task(pump.activate(schedule.pump_duration_seconds))
                 schedule_manager.record_watering(schedule.id)
         
         # Sleep for a short time before checking again
