@@ -16,14 +16,22 @@ pump = MotorDriver()
 sensor = MoistureSensor()
 schedule_manager = ScheduleManager()
 
-current_task = None
+
+async def startup_test():
+    await pump.run_for(1.0, 0.5)
+    await pump.run_for(-1.0, 0.5)
+    await pump.run_for(1.0, 0.5)
+    await pump.run_for(-1.0, 0.5)
+    await pump.run_for(1.0, 0.5)
+asyncio.get_event_loop().run_until_complete(startup_test())
 
 # Start worker process in a separate thread
 def run_worker():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(worker(pump, sensor))
-    
+
+
 worker_thread = threading.Thread(target=run_worker, daemon=True)
 worker_thread.start()
 
@@ -108,14 +116,5 @@ def trigger_schedule(schedule_id):
     threading.Thread(target=activate_pump).start()
     return jsonify({"success": True})
     
-async def startup_test():
-    await pump.run_for(1.0, 0.5)
-    await pump.run_for(-1.0, 0.5)
-    await pump.run_for(1.0, 0.5)
-    await pump.run_for(-1.0, 0.5)
-    await pump.run_for(1.0, 0.5)
-
 if __name__ == '__main__':
-    # Quick back/forth motor signal on startup to verify functionality
-    asyncio.run(startup_test())
     app.run(host='0.0.0.0', port=5000, debug=True)
